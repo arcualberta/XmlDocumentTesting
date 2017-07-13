@@ -1,0 +1,26 @@
+﻿<Window x:Class="XmlDocumentTest.SearchWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:XmlDocumentTest"
+        mc:Ignorable="d"
+        Title="SearchWindow" Height="391.694" Width="567.11" Closing="Window_Closing">
+    <Grid Margin="0,0,2,0">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="436*"/>
+            <ColumnDefinition Width="121*"/>
+        </Grid.ColumnDefinitions>
+        <DataGrid x:Name="SearchResult" CanUserAddRows="False" Margin="10,38,0,10" Width="272" HorizontalAlignment="Left" VerticalContentAlignment="Stretch" SelectionChanged="SearchResult_SelectionChanged" SelectionMode="Single">
+            <DataGrid.Columns>
+                <DataGridTextColumn Binding="{Binding Id}" ClipboardContentBinding="{x:Null}" Header="Id"/>
+                <DataGridTextColumn Binding="{Binding Content}" ClipboardContentBinding="{x:Null}" Header="Content"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        <Label Content="XPath&#xD;&#xA;" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="42" Height="22"/>
+        <TextBox x:Name="QueryPath" Height="23" Margin="57,10,90,0" TextWrapping="Wrap" Text="/Form/FirstName[text()=&quot;Test&quot;]" VerticalAlignment="Top" Grid.ColumnSpan="2" TextChanged="QueryPath_TextChanged" />
+        <Button x:Name="SearchButton" Content="Search" HorizontalAlignment="Right" Margin="0,10,10,0" VerticalAlignment="Top" Width="75" Click="SearchButton_Click" Grid.Column="1" />
+        <TextBlock x:Name="ViewXml" Margin="292,43,10,10" TextWrapping="Wrap" Text="TextBlock" Grid.ColumnSpan="2"/>
+
+    </Grid>
+</Window>
