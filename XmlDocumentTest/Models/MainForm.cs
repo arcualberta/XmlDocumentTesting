@@ -10,9 +10,8 @@ using XmlDocumentTest.Helpers;
 
 namespace XmlDocumentTest.Models
 {
-    public class MainForm
+    public class MainForm : IndexableModel
     {
-        public int Id { get; set; }
         
         [Column(TypeName = "xml")]
         public string Content { get; set; }

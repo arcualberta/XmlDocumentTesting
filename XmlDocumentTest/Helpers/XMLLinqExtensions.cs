@@ -10,6 +10,10 @@ using System.Xml.Serialization;
 using System.Data.Linq.SqlClient;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using XmlDocumentTest.Models;
+using SolrNet;
+using XmlDocumentTest.Services;
+using Microsoft.Practices.ServiceLocation;
 
 namespace XmlDocumentTest.Helpers
 {
@@ -21,6 +25,14 @@ namespace XmlDocumentTest.Helpers
 
         [DbFunction("xml.exist", "exits")]
         public static bool XPathExits*/
+
+        public static IQueryable<TSource> FromSolr<TSource>(this DbSet<TSource> set, string q) where TSource : IndexableModel
+        {
+            var solr = ServiceLocator.Current.GetInstance<ISolrOperations<SolrIndex>>();
+            var results = solr.Query(q).Select(s => s.Id);
+
+            return set.Where(p => results.Contains(p.Id));
+        }
 
         public static DbSqlQuery<TSource> WhereXPath<TSource>(this DbSet<TSource> set, Expression<Func<TSource, bool>> selector) where TSource : class
         {

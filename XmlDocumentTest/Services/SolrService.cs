@@ -14,12 +14,82 @@ using System.Xml.Linq;
 using XmlDocumentTest.Models;
 using XmlDocumentTest.Helpers;
 using System.Xml.Serialization;
+using SolrNet.Attributes;
+using SolrNet;
+using System.Collections.Specialized;
+using Hangfire;
+using Owin;
+using Microsoft.Practices.ServiceLocation;
+using SolrNet.Impl;
 
 namespace XmlDocumentTest.Services
 {
     public class SolrService
     {
         private ApplicationDbContext Db { get; set; }
+
+        // Used to control my update system
+        private static System.Object mSolrLock = new System.Object();
+        private static bool mSolrUpdateRequired = true;
+        private static SolrConnection mSolr { get; set; }
+
+        public static void Init(System.Windows.Application app)
+        {
+            // Initialize Solr
+            string server = System.Configuration.ConfigurationManager.AppSettings["SolrServer"];
+            mSolr = new SolrConnection(server);
+            Startup.Init<SolrIndex>(mSolr);
+
+            // Setup Hangfire
+            GlobalConfiguration.Configuration.UseSqlServerStorage("HangfireConnection");
+
+            var hangfireServer = new BackgroundJobServer();
+            BackgroundJob.Enqueue(() => Console.WriteLine("No OWIN"));
+
+            RecurringJob.AddOrUpdate("solr-delta-index", () => UpdateSolrIndex(false), "*/2 * * * *");
+            RecurringJob.AddOrUpdate("solr-full-index", () => UpdateSolrIndex(true), "0 0 * * *");
+        }
+
+        public static void RequestSolrUpdate()
+        {
+            lock (mSolrLock)
+            {
+                mSolrUpdateRequired = true;
+            }
+        }
+
+        public static void UpdateSolrIndex(bool fullImport)
+        {
+            Console.WriteLine("Updating Solr Index");
+
+            bool trigger = fullImport;
+
+            lock (mSolrLock)
+            {
+                if (mSolrUpdateRequired)
+                {
+                    trigger = true;
+                    mSolrUpdateRequired = false;
+                }
+            }
+
+            if (trigger)
+            {
+                IDictionary <string, string> data = new Dictionary<string, string>()
+                {
+                    { "command", "delta-import" },
+                    { "clean", "false" }
+                };
+
+                if (fullImport)
+                {
+                    data["command"] = "full-import";
+                    data["clean"] = "true";
+                }
+
+                //mSolr.PostStream("/dataimport", Newtonsoft.Json.JsonConvert.SerializeObject(data));
+            }
+        }
 
         public SolrService(ApplicationDbContext db)
         {
@@ -137,6 +207,7 @@ namespace XmlDocumentTest.Services
                         childEntity.SetAttributeValue("name", p.Name);
                         childEntity.SetAttributeValue("dataSource", "d2");
                         childEntity.SetAttributeValue("dataField", string.Format("{0}.{1}", name, ((ScalarPropertyMapping)property).Column.Name));
+                        childEntity.SetAttributeValue("forEach", string.Format("/{0}", p.Name));
 
                         entity.Add(childEntity);
                     }
@@ -190,7 +261,7 @@ namespace XmlDocumentTest.Services
                     if (property.GetCustomAttributes<XmlAttributeAttribute>().Any())
                     {
                         field.SetAttributeValue("column", string.Format("{0}{1}", namePath, property.Name));
-                        field.SetAttributeValue("xpath", string.Format("{0}[{1}]", baseXPath, property.Name));
+                        field.SetAttributeValue("xpath", string.Format("{0}@{1}", baseXPath, property.Name));
                     }
                     else
                     {
@@ -202,5 +273,29 @@ namespace XmlDocumentTest.Services
                 }
             }
         }
+    }
+
+    class SolrIndex
+    {
+        [SolrUniqueKey("Id")]
+        public int Id { get; set; }
+
+        [SolrField("FirstName")]
+        public ICollection<string> FirstName { get; set; }
+
+        [SolrField("FirstName-TestId")]
+        public ICollection<string> FirstNameId { get; set; }
+
+        [SolrField("LastName")]
+        public ICollection<string> LastName { get; set; }
+
+        [SolrField("LastName-TestId")]
+        public ICollection<string> LastNameId { get; set; }
+
+        [SolrField("Fields-Field")]
+        public ICollection<string> Fields { get; set; }
+
+        [SolrField("Fields-Field-TestId")]
+        public ICollection<string> FieldsId { get; set; }
     }
 }

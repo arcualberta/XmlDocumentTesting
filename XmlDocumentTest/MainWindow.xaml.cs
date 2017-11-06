@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using XmlDocumentTest.Models;
+using XmlDocumentTest.Services;
 
 namespace XmlDocumentTest
 {
@@ -72,6 +73,7 @@ namespace XmlDocumentTest
             }
 
             Db.SaveChanges();
+            SolrService.RequestSolrUpdate();
         }
 
         private void Entries_SelectionChanged(object sender, SelectionChangedEventArgs e)

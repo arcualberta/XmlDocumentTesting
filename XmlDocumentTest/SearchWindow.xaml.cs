@@ -32,12 +32,16 @@ namespace XmlDocumentTest
 
         private void SearchButton_Click(object sender, RoutedEventArgs e)
         {
-            var sql = @"SELECT * FROM[dbo].[MainForms] WHERE Content.exist('" + QueryPath.Text.Replace("'", "''") + "') = 1";
+            //var sql = @"SELECT * FROM[dbo].[MainForms] WHERE Content.exist('" + QueryPath.Text.Replace("'", "''") + "') = 1";
 
             //var query = Db.MainForms.SqlQuery(sql);
             //IList<MainForm> forms = query.ToList();
             //IList<MainForm> forms = Db.MainForms.OrderBy(m => m.Id).Where(m => m.Id > 0).WhereXPath(m => m.XmlContent.FirstName.Content == "Test").ToList(); 
-            IList<MainForm> forms = Db.MainForms.WhereXPath(m => m.XmlContent.FirstName.Content == "Test").ToList();
+            //IList<MainForm> forms = Db.MainForms.WhereXPath(m => m.XmlContent.FirstName.Content == "Test").ToList();
+
+            string query = QueryPath.Text;
+            IList<MainForm> forms = Db.MainForms.FromSolr(query).ToList();
+
             SearchResult.ItemsSource = forms;
         }
 

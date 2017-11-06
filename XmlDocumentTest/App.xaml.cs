@@ -15,16 +15,17 @@ namespace XmlDocumentTest
     /// </summary>
     public partial class App : Application
     {
+        
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
             if (e.Args.Contains("GenerateIndex"))
             {
-                SolrService solrSrv = new SolrService(new ApplicationDbContext());
-                solrSrv.GenerateSolrIndexTemplate(Console.Out, new Type[] { typeof(MainForm) }, true);
-
-                Console.Out.WriteLine();
+                SolrService.Init(this);
+                //SolrService solrSrv = new SolrService(new ApplicationDbContext());
+                //solrSrv.GenerateSolrIndexTemplate(Console.Out, new Type[] { typeof(MainForm) }, true);
+                
             }
         }
     }
